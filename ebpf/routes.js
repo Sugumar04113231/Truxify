@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import logger from '../backend/api/src/middleware/logger.js';
 import { authenticate } from '../backend/api/src/middleware/auth.js';
 import { requirePolicy } from '../backend/api/src/middleware/requirePolicy.js';
+import { createStore } from '../backend/api/src/middleware/rateLimiter.js';
 
 const execAsync = promisify(exec);
 const router = express.Router();
@@ -16,6 +17,7 @@ const router = express.Router();
 const ebpfActionLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 5, // 5 requests per 15 minutes
+    store: createStore('rl:ebpf-action:'),
     message: {
         success: false,
         error: 'Too many eBPF operations. Please try again later.'
@@ -28,6 +30,7 @@ const ebpfActionLimiter = rateLimit({
 const ebpfMetricsLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
     max: 60, // 60 requests per minute
+    store: createStore('rl:ebpf-metrics:'),
     message: {
         success: false,
         error: 'Too many metrics requests. Please try again later.'
